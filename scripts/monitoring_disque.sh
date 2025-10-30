@@ -1,54 +1,33 @@
 #!/bin/bash
+# Script pour surveiller l'espace disque
+# Usage: ./verif_disque.sh
 
-################################################################################
-# Script: monitoring_disque.sh
-# Description: Surveille l'espace disque et alerte si seuil dépassé
-# Auteur: HR60-inf
-# Date: 2025-10-30
-# Version: 1.0
-################################################################################
-
-# Configuration
 SEUIL=80
-LOG_FILE="../logs/monitoring_disque.log"
-DATE=$(date '+%Y-%m-%d %H:%M:%S')
+LOG_FILE="disque.log"
 
-# Création du dossier logs si inexistant
-mkdir -p ../logs
-
-# Fonction d'écriture dans le log
-log_message() {
-    echo "[$DATE] $1" >> "$LOG_FILE"
-}
-
-# Affichage de l'en-tête
-echo "=========================================="
-echo "  Surveillance de l'espace disque"
-echo "  Date: $DATE"
-echo "=========================================="
+echo "Vérification de l'espace disque"
+echo "--------------------------------"
 echo ""
 
-# Récupération et affichage de l'espace disque
-df -h | grep -vE '^Filesystem|tmpfs|cdrom'
+# Afficher l'espace disque
+df -h | grep -v "tmpfs\|Filesystem"
 
 echo ""
-echo "=========================================="
+echo "--------------------------------"
 
-# Vérification du seuil pour chaque partition
-df -h | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{print $5 " " $6}' | while read ligne
-do
-    utilisation=$(echo $ligne | awk '{print $1}' | sed 's/%//g')
-    partition=$(echo $ligne | awk '{print $2}')
+# Verifier chaque partition
+df -h | grep -v "tmpfs\|Filesystem" | while read ligne; do
+    utilisation=$(echo $ligne | awk '{print $5}' | sed 's/%//g')
+    partition=$(echo $ligne | awk '{print $6}')
     
     if [ "$utilisation" -ge "$SEUIL" ]; then
-        message="ALERTE: La partition $partition est utilisée à $utilisation% (seuil: $SEUIL%)"
-        echo "⚠️  $message"
-        log_message "$message"
+        echo "ATTENTION: $partition est plein à $utilisation%"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - ALERTE: $partition à $utilisation%" >> "$LOG_FILE"
     fi
 done
 
-# Log de l'exécution normale
-log_message "Surveillance effectuée - Seuil: $SEUIL%"
-
 echo ""
-echo "Logs enregistrés dans: $LOG_FILE"
+echo "Vérification terminée"
+
+# Enregistrer dans le log
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Vérification OK" >> "$LOG_FILE"
