@@ -2,7 +2,7 @@
 # Script pour nettoyer les vieux logs
 # Usage: ./nettoyer_logs.sh [dossier_logs]
 
-DOSSIER=${1:-"logs"}
+DOSSIER=${1:-"../logs"}
 JOURS=7
 TAILLE_MAX=10
 
